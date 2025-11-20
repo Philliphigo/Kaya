@@ -1,3 +1,4 @@
+
 export enum ViewState {
   AUTH = 'AUTH',
   ONBOARDING = 'ONBOARDING',
@@ -14,6 +15,8 @@ export interface User {
   role: string;
   avatar: string;
   password?: string; 
+  bio?: string;
+  location?: string;
 }
 
 export type TaskStatus = 'todo' | 'in-progress' | 'done';

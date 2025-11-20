@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Onboarding from './components/Onboarding';
 import Dashboard from './components/Dashboard';
 import CalendarView from './components/CalendarView';
 import Auth from './components/Auth';
 import { ViewState, User, DayActivity, Task, AppSettings } from './types';
-import { Home, Calendar, User as UserIcon, Settings, LogOut, Bell, Moon, RefreshCw, Shield, ChevronRight, ChevronLeft, Edit2, Check, X, CreditCard, Heart, Lock, Wallet, Camera, AlertCircle } from 'lucide-react';
+import { Home, Calendar, User as UserIcon, Settings, LogOut, Bell, Moon, RefreshCw, Shield, ChevronRight, ChevronLeft, Edit2, Check, X, CreditCard, Heart, Lock, Wallet, Camera, AlertCircle, MapPin, FileText } from 'lucide-react';
 
 // --- Donate Modal Component ---
 const DonateModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -142,8 +143,13 @@ interface ProfileViewProps {
 
 const ProfileView: React.FC<ProfileViewProps> = ({ user, tasks, onUpdateUser, onBack }) => {
     const [isEditing, setIsEditing] = useState(false);
+    
+    // Edit Form State
     const [editName, setEditName] = useState(user.name);
     const [editRole, setEditRole] = useState(user.role);
+    const [editBio, setEditBio] = useState(user.bio || "");
+    const [editLocation, setEditLocation] = useState(user.location || "");
+    
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const totalTasks = tasks.length;
@@ -151,7 +157,13 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, tasks, onUpdateUser, on
     const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     const handleSave = () => {
-        onUpdateUser({ ...user, name: editName, role: editRole });
+        onUpdateUser({ 
+            ...user, 
+            name: editName, 
+            role: editRole,
+            bio: editBio,
+            location: editLocation
+        });
         setIsEditing(false);
     };
 
@@ -172,13 +184,23 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, tasks, onUpdateUser, on
     };
 
     return (
-        <div className="h-full flex flex-col p-6 animate-fade-in overflow-y-auto no-scrollbar bg-primary-light dark:bg-gray-900 transition-colors duration-500">
+        <div className="h-full flex flex-col p-6 animate-fade-in overflow-y-auto no-scrollbar bg-primary-light dark:bg-gray-900 transition-colors duration-500 pb-24">
              {/* Header with Back Button */}
-             <div className="flex items-center gap-3 mb-6">
-                <button onClick={onBack} className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                    <ChevronLeft size={20} className="text-primary dark:text-white" />
-                </button>
-                <h2 className="text-xl font-bold text-primary dark:text-white">My Profile</h2>
+             <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                    <button onClick={onBack} className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <ChevronLeft size={20} className="text-primary dark:text-white" />
+                    </button>
+                    <h2 className="text-xl font-bold text-primary dark:text-white">My Profile</h2>
+                </div>
+                {!isEditing && (
+                    <button 
+                        onClick={() => setIsEditing(true)}
+                        className="px-4 py-2 bg-primary dark:bg-green-600 text-white rounded-full text-sm font-bold shadow-sm hover:bg-green-900 dark:hover:bg-green-700 transition-colors flex items-center gap-2"
+                    >
+                        <Edit2 size={14} /> Edit
+                    </button>
+                )}
             </div>
 
             {/* Hidden File Input for Avatar Upload */}
@@ -190,87 +212,136 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, tasks, onUpdateUser, on
                 onChange={handleFileChange}
             />
 
-            <div className="flex flex-col items-center mb-8">
-                <div className="relative group cursor-pointer" onClick={triggerFileSelect}>
-                    <div className="w-32 h-32 rounded-full bg-green-200 dark:bg-green-900 mb-4 overflow-hidden border-4 border-white dark:border-gray-700 shadow-lg relative">
-                        <img src={user.avatar} alt="avatar" className="w-full h-full object-cover transition-opacity group-hover:opacity-70" />
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Camera size={32} className="text-white drop-shadow-lg" />
-                        </div>
+            {isEditing ? (
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl animate-slide-up mb-6">
+                    <div className="flex justify-between items-center mb-4 border-b dark:border-gray-700 pb-2">
+                        <h3 className="font-bold text-primary dark:text-white">Edit Profile</h3>
+                        <button onClick={() => setIsEditing(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full dark:text-white">
+                            <X size={20} />
+                        </button>
                     </div>
-                    <button 
-                        className="absolute bottom-4 right-0 bg-primary dark:bg-green-600 text-white p-2 rounded-full shadow-md hover:scale-110 transition-transform z-10"
-                    >
-                        <Edit2 size={14} />
-                    </button>
-                </div>
 
-                {isEditing ? (
-                    <div className="w-full max-w-xs flex flex-col gap-3 mb-2 animate-fade-in">
-                        <input 
-                            value={editName} 
-                            onChange={(e) => setEditName(e.target.value)}
-                            className="text-center text-xl font-bold text-primary dark:text-white bg-white dark:bg-gray-800 border-b-2 border-primary/20 dark:border-green-500/50 rounded-t-lg outline-none py-2"
-                            placeholder="Name"
-                        />
-                        <input 
-                            value={editRole} 
-                            onChange={(e) => setEditRole(e.target.value)}
-                            className="text-center text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700 rounded-t-lg outline-none py-2"
-                            placeholder="Role"
-                        />
-                        <div className="flex justify-center gap-2 mt-2">
-                            <button onClick={handleSave} className="bg-primary dark:bg-green-600 text-white px-4 py-1 rounded-full text-sm flex items-center gap-1 shadow-sm">
-                                <Check size={14} /> Save
-                            </button>
-                            <button onClick={() => setIsEditing(false)} className="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-1 rounded-full text-sm flex items-center gap-1 shadow-sm">
-                                <X size={14} /> Cancel
-                            </button>
+                    <div className="space-y-4">
+                        {/* Avatar Edit */}
+                        <div className="flex flex-col items-center mb-4">
+                             <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden mb-2 relative">
+                                <img src={user.avatar} alt="avatar" className="w-full h-full object-cover opacity-70" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <button onClick={triggerFileSelect} className="bg-black/50 text-white p-2 rounded-full hover:bg-black/70">
+                                        <Camera size={20} />
+                                    </button>
+                                </div>
+                             </div>
+                             <p className="text-xs text-gray-400">Tap icon to change photo</p>
                         </div>
-                    </div>
-                ) : (
-                    <div className="text-center group cursor-pointer" onClick={() => setIsEditing(true)}>
-                        <h2 className="text-2xl font-bold text-primary dark:text-white flex items-center justify-center gap-2">
-                            {user.name} 
-                        </h2>
-                        <p className="text-gray-500 dark:text-gray-400">{user.role}</p>
-                        <p className="text-xs text-primary/50 dark:text-green-400/50 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Tap to edit name</p>
-                    </div>
-                )}
-            </div>
 
-            <div className="w-full bg-white dark:bg-gray-800 p-5 rounded-3xl shadow-sm animate-slide-up transition-colors" style={{animationDelay: '0.1s'}}>
-                <h3 className="font-bold text-primary dark:text-white mb-4">Statistics</h3>
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-700">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-full text-blue-600 dark:text-blue-400">
-                                <Check size={16} />
-                            </div>
-                            <span className="text-gray-600 dark:text-gray-300">Total Tasks</span>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Full Name</label>
+                            <input 
+                                value={editName}
+                                onChange={(e) => setEditName(e.target.value)}
+                                className="w-full bg-gray-50 dark:bg-gray-900 rounded-xl p-3 text-primary dark:text-white outline-none focus:ring-2 focus:ring-primary/20"
+                            />
                         </div>
-                        <span className="font-bold text-primary dark:text-white text-lg">{totalTasks}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-700">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-full text-yellow-600 dark:text-yellow-400">
-                                <Shield size={16} />
-                            </div>
-                            <span className="text-gray-600 dark:text-gray-300">Completion Rate</span>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Role / Title</label>
+                            <input 
+                                value={editRole}
+                                onChange={(e) => setEditRole(e.target.value)}
+                                className="w-full bg-gray-50 dark:bg-gray-900 rounded-xl p-3 text-primary dark:text-white outline-none focus:ring-2 focus:ring-primary/20"
+                            />
                         </div>
-                        <span className="font-bold text-primary dark:text-white text-lg">{completionRate}%</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded-full text-purple-600 dark:text-purple-400">
-                                <Calendar size={16} />
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Location</label>
+                            <div className="relative">
+                                <MapPin size={16} className="absolute left-3 top-3.5 text-gray-400" />
+                                <input 
+                                    value={editLocation}
+                                    onChange={(e) => setEditLocation(e.target.value)}
+                                    placeholder="e.g. New York, USA"
+                                    className="w-full bg-gray-50 dark:bg-gray-900 rounded-xl p-3 pl-10 text-primary dark:text-white outline-none focus:ring-2 focus:ring-primary/20"
+                                />
                             </div>
-                            <span className="text-gray-600 dark:text-gray-300">Member Since</span>
                         </div>
-                        <span className="font-bold text-primary dark:text-white text-lg">Today</span>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Bio</label>
+                            <textarea 
+                                value={editBio}
+                                onChange={(e) => setEditBio(e.target.value)}
+                                placeholder="Tell us about yourself..."
+                                rows={3}
+                                className="w-full bg-gray-50 dark:bg-gray-900 rounded-xl p-3 text-primary dark:text-white outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                            />
+                        </div>
+
+                        <button 
+                            onClick={handleSave}
+                            className="w-full bg-primary dark:bg-green-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-green-900 dark:hover:bg-green-700 transition-colors flex items-center justify-center gap-2 mt-4"
+                        >
+                            <Check size={18} /> Save Changes
+                        </button>
                     </div>
                 </div>
-            </div>
+            ) : (
+                <>
+                    <div className="flex flex-col items-center mb-8 animate-slide-up">
+                        <div className="w-32 h-32 rounded-full bg-green-200 dark:bg-green-900 mb-4 overflow-hidden border-4 border-white dark:border-gray-700 shadow-lg">
+                            <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                        </div>
+                        
+                        <h2 className="text-2xl font-bold text-primary dark:text-white text-center">{user.name}</h2>
+                        <p className="text-gray-500 dark:text-gray-400 font-medium mb-1">{user.role}</p>
+                        
+                        {(user.location || user.bio) && (
+                            <div className="mt-3 flex flex-col items-center gap-2 max-w-[80%] text-center">
+                                {user.location && (
+                                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                                        <MapPin size={12} /> {user.location}
+                                    </div>
+                                )}
+                                {user.bio && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 italic">"{user.bio}"</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="w-full bg-white dark:bg-gray-800 p-5 rounded-3xl shadow-sm animate-slide-up transition-colors" style={{animationDelay: '0.1s'}}>
+                        <h3 className="font-bold text-primary dark:text-white mb-4">Statistics</h3>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-700">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-full text-blue-600 dark:text-blue-400">
+                                        <FileText size={16} />
+                                    </div>
+                                    <span className="text-gray-600 dark:text-gray-300">Total Tasks</span>
+                                </div>
+                                <span className="font-bold text-primary dark:text-white text-lg">{totalTasks}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-700">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-full text-yellow-600 dark:text-yellow-400">
+                                        <Check size={16} />
+                                    </div>
+                                    <span className="text-gray-600 dark:text-gray-300">Completion Rate</span>
+                                </div>
+                                <span className="font-bold text-primary dark:text-white text-lg">{completionRate}%</span>
+                            </div>
+                            <div className="flex justify-between items-center py-2">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded-full text-purple-600 dark:text-purple-400">
+                                        <Calendar size={16} />
+                                    </div>
+                                    <span className="text-gray-600 dark:text-gray-300">Productivity Score</span>
+                                </div>
+                                <span className="font-bold text-primary dark:text-white text-lg">
+                                    {completionRate > 80 ? 'Excellent' : completionRate > 50 ? 'Good' : 'Building'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };
