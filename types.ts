@@ -1,28 +1,36 @@
 export enum ViewState {
+  AUTH = 'AUTH',
   ONBOARDING = 'ONBOARDING',
   DASHBOARD = 'DASHBOARD',
-  CALENDAR = 'CALENDAR'
+  CALENDAR = 'CALENDAR',
+  PROFILE = 'PROFILE',
+  SETTINGS = 'SETTINGS'
 }
 
 export interface User {
-  name: string;
-  avatar: string;
-}
-
-export interface StatMetric {
-  label: string;
-  value: number;
-  icon: string;
-  color: string;
-}
-
-export interface CalendarEvent {
   id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar: string;
+  password?: string; 
+}
+
+export type TaskStatus = 'todo' | 'in-progress' | 'done';
+export type TaskCategory = 'work' | 'personal' | 'meeting' | 'health';
+
+export interface Task {
+  id: string;
+  userId: string; // Linked to User.id
   title: string;
+  description?: string;
   startTime: string;
-  endTime: string;
-  attendees: User[];
-  category: 'work' | 'personal' | 'meeting';
+  endTime?: string;
+  date: number;
+  category: TaskCategory;
+  status: TaskStatus;
+  duration?: string;
+  reminderMinutes?: number;
 }
 
 export interface DayActivity {
@@ -30,8 +38,9 @@ export interface DayActivity {
   hours: number;
 }
 
-export interface AISuggestion {
-  title: string;
-  description: string;
-  estimatedDuration: string;
+export interface AppSettings {
+  notifications: boolean;
+  darkMode: boolean;
+  calendarSync: boolean;
+  soundEffects: boolean;
 }

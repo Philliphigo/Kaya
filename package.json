@@ -1,5 +1,5 @@
 {
-  "name": "timezy-ai-planner",
+  "name": "phil-reminder-app---set-your-goals",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "react-dom": "^19.2.0",
-    "@google/genai": "^1.30.0",
     "lucide-react": "^0.554.0",
     "react": "^19.2.0",
     "recharts": "^3.4.1"
